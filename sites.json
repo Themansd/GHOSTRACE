@@ -1,0 +1,957 @@
+{
+  "GitHub": {
+    "url": "https://github.com/{}",
+    "status_code": 200,
+    "regex": "404 Not Found"
+  },
+  "Twitter": {
+    "url": "https://twitter.com/{}",
+    "status_code": 200,
+    "regex": "Page not found"
+  },
+  "Instagram": {
+    "url": "https://www.instagram.com/{}/",
+    "status_code": 200,
+    "regex": "Not Found"
+  },
+  "Facebook": {
+    "url": "https://www.facebook.com/{}",
+    "status_code": 200,
+    "regex": "This content is currently unavailable"
+  },
+  "LinkedIn": {
+    "url": "https://www.linkedin.com/in/{}/",
+    "status_code": 200,
+    "regex": "Profile not found"
+  },
+  "YouTube": {
+    "url": "https://www.youtube.com/@{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "TikTok": {
+    "url": "https://www.tiktok.com/@{}",
+    "status_code": 200,
+    "regex": "doesn't exist"
+  },
+  "Reddit": {
+    "url": "https://www.reddit.com/user/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Pinterest": {
+    "url": "https://www.pinterest.com/{}/",
+    "status_code": 200,
+    "regex": "no results"
+  },
+  "Snapchat": {
+    "url": "https://www.snapchat.com/add/{}",
+    "status_code": 200,
+    "regex": "not found"
+  },
+  "Discord": {
+    "url": "https://discord.com/users/{}",
+    "status_code": 200,
+    "regex": "Unknown User"
+  },
+  "Twitch": {
+    "url": "https://www.twitch.tv/{}",
+    "status_code": 200,
+    "regex": "Page Not Found"
+  },
+  "Steam": {
+    "url": "https://steamcommunity.com/id/{}",
+    "status_code": 200,
+    "regex": "The specified profile could not be found"
+  },
+  "Medium": {
+    "url": "https://medium.com/@{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "DeviantArt": {
+    "url": "https://{}.deviantart.com",
+    "status_code": 200,
+    "regex": "does not exist"
+  },
+  "SoundCloud": {
+    "url": "https://soundcloud.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Vimeo": {
+    "url": "https://vimeo.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Dribbble": {
+    "url": "https://dribbble.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Behance": {
+    "url": "https://www.behance.net/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Flickr": {
+    "url": "https://www.flickr.com/people/{}",
+    "status_code": 200,
+    "regex": "not found"
+  },
+  "Quora": {
+    "url": "https://www.quora.com/profile/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Tumblr": {
+    "url": "https://{}.tumblr.com",
+    "status_code": 200,
+    "regex": "There's nothing here"
+  },
+  "GitLab": {
+    "url": "https://gitlab.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Bitbucket": {
+    "url": "https://bitbucket.org/{}",
+    "status_code": 200,
+    "regex": "Repository not found"
+  },
+  "NPM": {
+    "url": "https://www.npmjs.com/~{}",
+    "status_code": 200,
+    "regex": "Not Found"
+  },
+  "PyPI": {
+    "url": "https://pypi.org/user/{}",
+    "status_code": 200,
+    "regex": "Not Found"
+  },
+  "Docker Hub": {
+    "url": "https://hub.docker.com/u/{}",
+    "status_code": 200,
+    "regex": "Not Found"
+  },
+  "StackOverflow": {
+    "url": "https://stackoverflow.com/users/{}",
+    "status_code": 200,
+    "regex": "Page Not Found"
+  },
+  "HackerNews": {
+    "url": "https://news.ycombinator.com/user?id={}",
+    "status_code": 200,
+    "regex": "No such user"
+  },
+  "Keybase": {
+    "url": "https://keybase.io/{}",
+    "status_code": 200,
+    "regex": "No user found"
+  },
+  "Roblox": {
+    "url": "https://www.roblox.com/user.aspx?username={}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "EpicGames": {
+    "url": "https://www.epicgames.com/id/{}",
+    "status_code": 200,
+    "regex": "Page not found"
+  },
+  "Xbox": {
+    "url": "https://account.xbox.com/profile?gamertag={}",
+    "status_code": 200,
+    "regex": "We couldn't find"
+  },
+  "PlayStation": {
+    "url": "https://psnprofiles.com/{}",
+    "status_code": 200,
+    "regex": "does not exist"
+  },
+  "MyAnimeList": {
+    "url": "https://myanimelist.net/profile/{}",
+    "status_code": 200,
+    "regex": "not found"
+  },
+  "Last.fm": {
+    "url": "https://www.last.fm/user/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Spotify": {
+    "url": "https://open.spotify.com/user/{}",
+    "status_code": 200,
+    "regex": "Not found"
+  },
+  "Blogger": {
+    "url": "https://{}.blogspot.com",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "WordPress": {
+    "url": "https://{}.wordpress.com",
+    "status_code": 200,
+    "regex": "doesn\\'t exist"
+  },
+  "Wix": {
+    "url": "https://{}.wixsite.com",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Squarespace": {
+    "url": "https://{}.squarespace.com",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Weebly": {
+    "url": "https://{}.weebly.com",
+    "status_code": 200,
+    "regex": "Page not found"
+  },
+  "Carrd": {
+    "url": "https://{}.carrd.co",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Linktree": {
+    "url": "https://linktr.ee/{}",
+    "status_code": 200,
+    "regex": "Not found"
+  },
+  "About.me": {
+    "url": "https://about.me/{}",
+    "status_code": 200,
+    "regex": "not found"
+  },
+  "Gravatar": {
+    "url": "https://en.gravatar.com/{}",
+    "status_code": 200,
+    "regex": "User not found"
+  },
+  "Imgur": {
+    "url": "https://imgur.com/user/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Giphy": {
+    "url": "https://giphy.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Etsy": {
+    "url": "https://www.etsy.com/people/{}",
+    "status_code": 200,
+    "regex": "We couldn't find"
+  },
+  "Patreon": {
+    "url": "https://www.patreon.com/{}",
+    "status_code": 200,
+    "regex": "Not found"
+  },
+  "Ko-fi": {
+    "url": "https://ko-fi.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "BuyMeACoffee": {
+    "url": "https://www.buymeacoffee.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Pornhub": {
+    "url": "https://www.pornhub.com/users/{}",
+    "status_code": 200,
+    "regex": "not found"
+  },
+  "XVideos": {
+    "url": "https://www.xvideos.com/profile/{}",
+    "status_code": 200,
+    "regex": "not found"
+  },
+  "OnlyFans": {
+    "url": "https://onlyfans.com/{}",
+    "status_code": 200,
+    "regex": "not found"
+  },
+  "Bumble": {
+    "url": "https://bumble.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Tinder": {
+    "url": "https://tinder.com/@{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Hinge": {
+    "url": "https://hinge.co/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Goodreads": {
+    "url": "https://www.goodreads.com/user/show/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Patreon": {
+    "url": "https://www.patreon.com/{}",
+    "status_code": 200,
+    "regex": "Not found"
+  },
+  "SlideShare": {
+    "url": "https://www.slideshare.net/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Scribd": {
+    "url": "https://www.scribd.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Mixcloud": {
+    "url": "https://www.mixcloud.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "ReverbNation": {
+    "url": "https://www.reverbnation.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Bandcamp": {
+    "url": "https://{}.bandcamp.com",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Couchsurfing": {
+    "url": "https://www.couchsurfing.com/users/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "TripAdvisor": {
+    "url": "https://www.tripadvisor.com/members/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "FourSquare": {
+    "url": "https://foursquare.com/user/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Meetup": {
+    "url": "https://www.meetup.com/members/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Myspace": {
+    "url": "https://myspace.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Bebo": {
+    "url": "https://www.bebo.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Fotolog": {
+    "url": "https://www.fotolog.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "StumbleUpon": {
+    "url": "https://stumbleupon.com/stumbler/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Del.icio.us": {
+    "url": "https://del.icio.us/{}",
+    "status_code": 200,
+    "regex": "not found"
+  },
+  "Digg": {
+    "url": "https://digg.com/@{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Mix": {
+    "url": "https://mix.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Pastebin": {
+    "url": "https://pastebin.com/u/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Gist": {
+    "url": "https://gist.github.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Replit": {
+    "url": "https://replit.com/@{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "CodePen": {
+    "url": "https://codepen.io/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "JSFiddle": {
+    "url": "https://jsfiddle.net/user/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Replit": {
+    "url": "https://replit.com/@{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Glitch": {
+    "url": "https://glitch.com/@{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Codeberg": {
+    "url": "https://codeberg.org/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "SourceForge": {
+    "url": "https://sourceforge.net/users/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Launchpad": {
+    "url": "https://launchpad.net/~{}",
+    "status_code": 200,
+    "regex": "not found"
+  },
+  "Ohloh": {
+    "url": "https://www.openhub.net/accounts/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "WolframAlpha": {
+    "url": "https://www.wolframalpha.com/input?i=users:{}",
+    "status_code": 200,
+    "regex": "not found"
+  },
+  "KhanAcademy": {
+    "url": "https://www.khanacademy.org/profile/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Duolingo": {
+    "url": "https://www.duolingo.com/profile/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Wikipedia": {
+    "url": "https://en.wikipedia.org/wiki/User:{}",
+    "status_code": 200,
+    "regex": "does not exist"
+  },
+  "Fandom": {
+    "url": "https://www.fandom.com/u/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Archive.org": {
+    "url": "https://archive.org/details/@{}",
+    "status_code": 200,
+    "regex": "not found"
+  },
+  "Pastebin": {
+    "url": "https://pastebin.com/u/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Pastie": {
+    "url": "https://pastie.org/pastes/{}",
+    "status_code": 200,
+    "regex": "Not Found"
+  },
+  "Dpaste": {
+    "url": "https://dpaste.com/{}",
+    "status_code": 200,
+    "regex": "Not Found"
+  },
+  "Jira": {
+    "url": "https://jira.atlassian.com/secure/ViewProfile.jspa?name={}",
+    "status_code": 200,
+    "regex": "does not exist"
+  },
+  "Confluence": {
+    "url": "https://confluence.atlassian.com/display/~{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Trello": {
+    "url": "https://trello.com/{}",
+    "status_code": 200,
+    "regex": "Board not found"
+  },
+  "Notion": {
+    "url": "https://notion.so/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Slack": {
+    "url": "https://{}.slack.com",
+    "status_code": 200,
+    "regex": "workspace not found"
+  },
+  "Zoom": {
+    "url": "https://zoom.us/profile/{}",
+    "status_code": 200,
+    "regex": "not found"
+  },
+  "Dropship": {
+    "url": "https://dropship.com/u/{}",
+    "status_code": 200,
+    "regex": "not found"
+  },
+  "Shopify": {
+    "url": "https://{}.myshopify.com",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Gumroad": {
+    "url": "https://gumroad.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Itch.io": {
+    "url": "https://{}.itch.io",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "GameJolt": {
+    "url": "https://gamejolt.com/@{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Newgrounds": {
+    "url": "https://{}.newgrounds.com",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Kongregate": {
+    "url": "https://www.kongregate.com/accounts/{}",
+    "status_code": 200,
+    "regex": "not found"
+  },
+  "Itch.io": {
+    "url": "https://{}.itch.io",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "VRChat": {
+    "url": "https://vrchat.com/home/user/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "SecondLife": {
+    "url": "https://my.secondlife.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Minecraft": {
+    "url": "https://namemc.com/profile/{}",
+    "status_code": 200,
+    "regex": "not found"
+  },
+  "GenshinImpact": {
+    "url": "https://act.hoyolab.com/community/pw/htHome.html?user_id={}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Flickr": {
+    "url": "https://www.flickr.com/people/{}",
+    "status_code": 200,
+    "regex": "not found"
+  },
+  "Unsplash": {
+    "url": "https://unsplash.com/@{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Pexels": {
+    "url": "https://www.pexels.com/@{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Dribbble": {
+    "url": "https://dribbble.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Behance": {
+    "url": "https://www.behance.net/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "ArtStation": {
+    "url": "https://{}.artstation.com",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "DeviantArt": {
+    "url": "https://{}.deviantart.com",
+    "status_code": 200,
+    "regex": "does not exist"
+  },
+  "CGTrader": {
+    "url": "https://www.cgtrader.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Sketchfab": {
+    "url": "https://sketchfab.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "PolyCount": {
+    "url": "https://polycount.com/profile/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "BlenderArtists": {
+    "url": "https://blenderartists.org/profile/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Reddit": {
+    "url": "https://old.reddit.com/user/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Telegram": {
+    "url": "https://t.me/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "WhatsApp": {
+    "url": "https://wa.me/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Signal": {
+    "url": "https://signal.org/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Viber": {
+    "url": "https://chat.viber.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "WeChat": {
+    "url": "https://weixin.qq.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Line": {
+    "url": "https://line.me/ti/p/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "ICQ": {
+    "url": "https://icq.com/people/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Trillian": {
+    "url": "https://trillian.im/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Matrix": {
+    "url": "https://matrix.to/#/@{}:matrix.org",
+    "status_code": 200,
+    "regex": "not found"
+  },
+  "Element": {
+    "url": "https://app.element.io/#/@{}:matrix.org",
+    "status_code": 200,
+    "regex": "not found"
+  },
+  "Mastodon": {
+    "url": "https://mastodon.social/@{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Pixelfed": {
+    "url": "https://pixelfed.social/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "PeerTube": {
+    "url": "https://joinpeertube.org/channel/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Lemmy": {
+    "url": "https://lemmy.world/u/{}",
+    "status_code": 200,
+    "regex": "not found"
+  },
+  "Gettr": {
+    "url": "https://gettr.com/user/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Gab": {
+    "url": "https://gab.com/{}",
+    "status_code": 200,
+    "regex": "not found"
+  },
+  "Parler": {
+    "url": "https://parler.com/profile/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "TruthSocial": {
+    "url": "https://truthsocial.com/@{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Nostr": {
+    "url": "https://nostr.guru/{}",
+    "status_code": 200,
+    "regex": "not found"
+  },
+  "Odysee": {
+    "url": "https://odysee.com/@{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "LBRY": {
+    "url": "https://lbry.tv/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "DTube": {
+    "url": "https://d.tube/#/v/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "BitChute": {
+    "url": "https://www.bitchute.com/channel/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Rumble": {
+    "url": "https://rumble.com/user/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "BitTube": {
+    "url": "https://bittube.tv/profile/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Dlive": {
+    "url": "https://dlive.tv/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Trovo": {
+    "url": "https://trovo.live/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Kick": {
+    "url": "https://kick.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Cafebazaar": {
+    "url": "https://cafebazaar.ir/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Aparat": {
+    "url": "https://www.aparat.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Cloob": {
+    "url": "https://www.cloob.com/name/{}",
+    "status_code": 200,
+    "regex": "not found"
+  },
+  "Balatarin": {
+    "url": "https://www.balatarin.com/user/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Iranian": {
+    "url": "https://www.iranian.com/user/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Mix": {
+    "url": "https://mix.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Swae": {
+    "url": "https://swae.io/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Babel": {
+    "url": "https://babel.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Elderscrolls": {
+    "url": "https://elderscrolls.bethesda.net/en/profile/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "MMO": {
+    "url": "https://www.mmorpg.com/members/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "SteamGroup": {
+    "url": "https://steamcommunity.com/groups/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "XSplit": {
+    "url": "https://www.xsplit.com/profile/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "OBS": {
+    "url": "https://obsproject.com/profile/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "StreamElements": {
+    "url": "https://streamelements.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Streamlabs": {
+    "url": "https://streamlabs.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Restream": {
+    "url": "https://restream.io/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Peer2Profit": {
+    "url": "https://p2pru.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Traity": {
+    "url": "https://traity.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Crypto": {
+    "url": "https://www.opensea.io/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Foundation": {
+    "url": "https://foundation.app/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Rarible": {
+    "url": "https://rarible.com/user/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Async": {
+    "url": "https://async.art/account/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Nifty": {
+    "url": "https://niftygateway.com/profile/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "KnownOrigin": {
+    "url": "https://knownorigin.io/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "SuperRare": {
+    "url": "https://superrare.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Hicathon": {
+    "url": "https://hicathon.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Solsea": {
+    "url": "https://solsea.io/creator/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "MagicEden": {
+    "url": "https://magiceden.io/user/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Solanart": {
+    "url": "https://solanart.io/collections/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "DigitalEyes": {
+    "url": "https://digitaleyes.market/collections/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "OpenSea": {
+    "url": "https://opensea.io/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Rinkeby": {
+    "url": "https://app.ENS.domains/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Ethereum": {
+    "url": "https://etherscan.io/token/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "BscScan": {
+    "url": "https://bscscan.com/token/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Polygonscan": {
+    "url": "https://polygonscan.com/token/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "LensProtocol": {
+    "url": "https://lenster.xyz/u/{}",
+    "status_code": 200,
+    "regex": "404"
+  },
+  "Farcaster": {
+    "url": "https://warpcast.com/{}",
+    "status_code": 200,
+    "regex": "404"
+  }
+}

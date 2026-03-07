@@ -1,0 +1,7 @@
+aiohttp
+aiodns
+argparse
+colorama
+python-whois
+flask
+pyfiglet
