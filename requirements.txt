@@ -5,3 +5,4 @@ colorama
 python-whois
 flask
 pyfiglet
+dnspython
