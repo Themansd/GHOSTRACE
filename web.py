@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-GHOSTRACE v1.0 - Web Interface
+GHOSTRACE v1.2 - Web Interface
 Advanced OSINT Username Discovery Tool
 
 Developed by: Chriz
@@ -9,8 +9,7 @@ GitHub: https://github.com/chriz-3656
 License: MIT
 """
 
-from flask import Flask, render_template_string, request, jsonify, redirect, url_for
-import threading
+from flask import Flask, render_template_string, request, jsonify
 import asyncio
 import json
 import os
@@ -18,11 +17,12 @@ import random
 import socket
 import ssl
 import aiohttp
+import re
+import hashlib
 from datetime import datetime
-import time
 from colorama import Fore, Style, init
 
-# Auto-create necessary folders on first run
+# Auto-create necessary folders
 def ensure_folders():
     folders = ['output', 'logs', 'data']
     for folder in folders:
@@ -31,59 +31,41 @@ def ensure_folders():
             print(f"   {Fore.GREEN}>> Created folder: {folder}/{Style.RESET_ALL}")
 
 ensure_folders()
-
 init(autoreset=True)
 
 # Tool Info
 TOOL_NAME = "GHOSTRACE"
-VERSION = "1.0"
+VERSION = "1.2"
 CREATOR = "Chriz"
 EMAIL = "chrizmonsaji@proton.me"
 GITHUB = "https://github.com/chriz-3656"
-LICENSE = "MIT"
 
 app = Flask(__name__)
-
-# Store scan results and status
-scan_results = {}
 scan_history = []
 
-# Load sites
 def load_sites():
     with open('sites.json', 'r') as f:
         return json.load(f)
 
-# User agents
 USER_AGENTS = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36',
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0',
 ]
 
-# Scanner classes
-class WebFootprintScanner:
+# ============= SCANNER CLASSES =============
+
+class FootprintScanner:
     def __init__(self):
         self.sites = load_sites()
-        self.found = []
         
-    def get_headers(self):
-        return {
-            'User-Agent': random.choice(USER_AGENTS),
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.5',
-            'DNT': '1',
-        }
-
     async def check_site(self, session, site, username):
         url = self.sites[site]['url'].format(username)
         try:
-            async with session.get(url, headers=self.get_headers(), 
-                                   timeout=aiohttp.ClientTimeout(total=10)) as response:
+            async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as response:
                 text = await response.text()
                 status = response.status
                 expected_status = self.sites[site].get('status_code', 200)
                 negative_regex = self.sites[site].get('regex')
-                
                 if status == expected_status:
                     if negative_regex and negative_regex.lower() in text.lower():
                         return False
@@ -92,82 +74,69 @@ class WebFootprintScanner:
         except:
             return False
 
-    async def run_async(self, username):
-        connector = aiohttp.TCPConnector(limit=10)
-        async with aiohttp.ClientSession(connector=connector) as session:
-            tasks = [self.check_site(session, site, username) for site in self.sites]
-            results = await asyncio.gather(*tasks)
-            
-            for site, found in zip(self.sites.keys(), results):
-                if found:
-                    self.found.append({'site': site, 'url': self.sites[site]['url'].format(username)})
-        
-        return self.found
-
     def run(self, username):
-        return asyncio.run(self.run_async(username))
+        async def run_async():
+            connector = aiohttp.TCPConnector(limit=10)
+            async with aiohttp.ClientSession(connector=connector) as session:
+                tasks = [self.check_site(session, site, username) for site in self.sites]
+                results = await asyncio.gather(*tasks)
+                found = []
+                for site, found_flag in zip(self.sites.keys(), results):
+                    if found_flag:
+                        found.append({'site': site, 'url': self.sites[site]['url'].format(username)})
+                return found
+        return asyncio.run(run_async())
 
 
-class WebEmailFinder:
-    async def check_breach_async(self, session, email, api_key):
-        try:
-            import hashlib
-            sha1 = hashlib.sha1(email.encode()).hexdigest().upper()
-            prefix, suffix = sha1[:5], sha1[5:]
-            
-            async with session.get(f"https://api.pwnedpasswords.com/range/{prefix}") as resp:
-                if resp.status == 200:
-                    data = await resp.text()
-                    for line in data.split('\n'):
-                        h, count = line.split(':')
-                        if h == suffix:
-                            return int(count)
-        except:
-            pass
-        return 0
-
-    def check_breach(self, email, api_key=None):
-        return asyncio.run(self.check_breach_async(aiohttp.ClientSession(), email, api_key))
-
-
-class WebWHOISLookup:
-    def lookup(self, domain):
-        try:
-            import whois
-            w = whois.whois(domain)
-            return {
-                'Domain': domain,
-                'Registrar': str(w.registrar) if w.registrar else 'N/A',
-                'Created': str(w.creation_date) if w.creation_date else 'N/A',
-                'Expires': str(w.expiration_date) if w.expiration_date else 'N/A',
-                'Name Servers': str(w.name_servers) if w.name_servers else 'N/A'
-            }
-        except Exception as e:
-            return {'Error': str(e)}
-
-
-class WebSubdomainEnum:
-    def __init__(self):
-        self.subdomains = ['www', 'mail', 'ftp', 'webmail', 'smtp', 'pop', 'ns1', 
-                          'ns2', 'cpanel', 'whm', 'admin', 'blog', 'dev', 'test', 'mx', 'static']
-
-    async def enumerate_async(self, session, domain):
-        found = []
-        for sub in self.subdomains:
-            url = f"http://{sub}.{domain}"
+class IPGeoLookup:
+    def lookup(self, ip_addr):
+        async def run_async():
             try:
-                async with session.get(url, timeout=aiohttp.ClientTimeout(total=3)) as resp:
-                    if resp.status < 400:
-                        found.append(url)
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(f"http://ip-api.com/json/{ip_addr}") as resp:
+                        if resp.status == 200:
+                            return await resp.json()
             except:
                 pass
-        return found
+            return {'error': 'Failed'}
+        return asyncio.run(run_async())
 
+
+class PortScanner:
+    def scan(self, host):
+        ports = [21, 22, 23, 25, 53, 80, 110, 143, 443, 445, 993, 995, 3306, 3389, 5432, 8080, 8443]
+        results = []
+        for port in ports:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(2)
+            result = sock.connect_ex((host, port))
+            if result == 0:
+                results.append({'port': port, 'status': 'open'})
+            sock.close()
+        return results
+
+
+class SubdomainEnum:
     def enumerate(self, domain):
-        return asyncio.run(self.enumerate_async(aiohttp.ClientSession(), domain))
+        subdomains = ['www', 'mail', 'ftp', 'webmail', 'smtp', 'pop', 'ns1', 'ns2', 
+                     'cpanel', 'whm', 'admin', 'blog', 'dev', 'test', 'mx', 'static',
+                     'cdn', 'api', 'app', 'cloud', 'shop']
+        async def run_async():
+            found = []
+            async with aiohttp.ClientSession() as session:
+                for sub in subdomains:
+                    url = f"http://{sub}.{domain}"
+                    try:
+                        async with session.get(url, timeout=aiohttp.ClientTimeout(total=3)) as resp:
+                            if resp.status < 400:
+                                found.append(url)
+                    except:
+                        pass
+            return found
+        return asyncio.run(run_async())
 
 
-class WebSSLCert:
+class SSLCert:
     def check(self, hostname):
         try:
             ctx = ssl.create_default_context()
@@ -183,14 +152,58 @@ class WebSSLCert:
             return {'Error': str(e)}
 
 
-# Modern HTML Template
-HTML_TEMPLATE = '''
-<!DOCTYPE html>
+class TechnologyDetect:
+    def detect(self, url):
+        if not url.startswith('http'):
+            url = 'https://' + url
+        async def run_async():
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                        headers = dict(resp.headers)
+                        text = await resp.text()
+                        tech = []
+                        server = headers.get('Server', '')
+                        if 'nginx' in server.lower(): tech.append('Nginx')
+                        if 'apache' in server.lower(): tech.append('Apache')
+                        if 'cloudflare' in server.lower(): tech.append('Cloudflare')
+                        if 'react' in text.lower(): tech.append('React')
+                        if 'vue' in text.lower(): tech.append('Vue.js')
+                        if 'jquery' in text.lower(): tech.append('jQuery')
+                        if 'bootstrap' in text.lower(): tech.append('Bootstrap')
+                        if 'wordpress' in text.lower(): tech.append('WordPress')
+                        return {'technologies': tech}
+            except Exception as e:
+                return {'error': str(e)}
+        return asyncio.run(run_async())
+
+
+class ContentDiscovery:
+    def discover(self, url):
+        if not url.startswith('http'):
+            url = 'https://' + url
+        async def run_async():
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(url, timeout=aiohttp.ClientTimeout(total=15)) as resp:
+                        if resp.status == 200:
+                            text = await resp.text()
+                            emails = re.findall(r'[\w\.-]+@[\w\.-]+\.\w+', text)[:20]
+                            files = re.findall(r'\.(pdf|docx?|xlsx?|zip|rar)\b', text, re.I)[:15]
+                            return {'emails': emails, 'files': files}
+            except Exception as e:
+                return {'error': str(e)}
+        return asyncio.run(run_async())
+
+
+# ============= HTML TEMPLATE =============
+
+HTML_TEMPLATE = '''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GHOSTRACE - OSINT Scanner</title>
+    <title>GHOSTRACE - Advanced OSINT Scanner</title>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -220,13 +233,11 @@ HTML_TEMPLATE = '''
             line-height: 1.6;
         }
         
-        /* Background Effect */
         .bg-grid {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background-image: 
-                linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px);
+            background-image: linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px);
             background-size: 50px 50px;
             pointer-events: none;
             z-index: 0;
@@ -249,7 +260,6 @@ HTML_TEMPLATE = '''
             z-index: 1;
         }
         
-        /* Header */
         header {
             text-align: center;
             margin-bottom: 40px;
@@ -271,7 +281,6 @@ HTML_TEMPLATE = '''
             background-clip: text;
             letter-spacing: -2px;
             margin-bottom: 8px;
-            text-shadow: 0 0 40px var(--accent-glow);
         }
         
         .tagline {
@@ -281,28 +290,21 @@ HTML_TEMPLATE = '''
             text-transform: uppercase;
         }
         
-        /* Navigation */
         nav {
             display: flex;
             justify-content: center;
             gap: 8px;
             margin-bottom: 40px;
             flex-wrap: wrap;
-            animation: fadeIn 0.8s ease 0.2s both;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
         }
         
         nav a {
             color: var(--text-secondary);
             text-decoration: none;
-            padding: 12px 24px;
+            padding: 12px 20px;
             border-radius: 8px;
             font-weight: 500;
-            font-size: 0.9em;
+            font-size: 0.85em;
             transition: all 0.3s ease;
             border: 1px solid transparent;
         }
@@ -311,7 +313,6 @@ HTML_TEMPLATE = '''
             color: var(--accent);
             background: var(--accent-glow);
             border-color: var(--accent);
-            transform: translateY(-2px);
         }
         
         nav a.active {
@@ -320,25 +321,17 @@ HTML_TEMPLATE = '''
             border-color: var(--accent);
         }
         
-        /* Cards */
         .card {
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 16px;
             padding: 32px;
             margin-bottom: 24px;
-            animation: fadeInUp 0.6s ease both;
-        }
-        
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
         }
         
         .card h2 {
             font-size: 1.5em;
             margin-bottom: 8px;
-            color: var(--text-primary);
         }
         
         .card p {
@@ -346,10 +339,9 @@ HTML_TEMPLATE = '''
             margin-bottom: 24px;
         }
         
-        /* Stats */
         .stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
@@ -358,19 +350,12 @@ HTML_TEMPLATE = '''
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 24px;
+            padding: 20px;
             text-align: center;
-            transition: all 0.3s ease;
-        }
-        
-        .stat-box:hover {
-            border-color: var(--accent);
-            transform: translateY(-4px);
-            box-shadow: 0 8px 30px var(--accent-glow);
         }
         
         .stat-box .number {
-            font-size: 2.5em;
+            font-size: 2em;
             font-weight: 700;
             color: var(--accent);
             font-family: 'JetBrains Mono', monospace;
@@ -378,11 +363,10 @@ HTML_TEMPLATE = '''
         
         .stat-box .label {
             color: var(--text-secondary);
-            font-size: 0.9em;
+            font-size: 0.85em;
             margin-top: 8px;
         }
         
-        /* Forms */
         .form-group { margin-bottom: 20px; }
         
         label {
@@ -393,9 +377,9 @@ HTML_TEMPLATE = '''
             font-weight: 500;
         }
         
-        input[type="text"], input[type="email"] {
+        input, select {
             width: 100%;
-            padding: 16px 20px;
+            padding: 14px 18px;
             background: var(--bg-secondary);
             border: 1px solid var(--border);
             border-radius: 10px;
@@ -411,21 +395,16 @@ HTML_TEMPLATE = '''
             box-shadow: 0 0 0 3px var(--accent-glow);
         }
         
-        input::placeholder {
-            color: var(--text-muted);
-        }
-        
         button {
             background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
             color: var(--bg-primary);
             border: none;
-            padding: 16px 40px;
+            padding: 14px 32px;
             font-size: 1em;
             font-weight: 600;
             border-radius: 10px;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-family: 'Inter', sans-serif;
         }
         
         button:hover {
@@ -433,19 +412,12 @@ HTML_TEMPLATE = '''
             box-shadow: 0 8px 25px var(--accent-glow);
         }
         
-        /* Results */
         .result-item {
-            padding: 16px;
-            margin: 12px 0;
+            padding: 14px;
+            margin: 10px 0;
             border-radius: 10px;
             background: var(--bg-secondary);
             border-left: 3px solid var(--accent);
-            transition: all 0.3s ease;
-        }
-        
-        .result-item:hover {
-            background: var(--bg-hover);
-            transform: translateX(4px);
         }
         
         .result-item a {
@@ -455,11 +427,6 @@ HTML_TEMPLATE = '''
             font-size: 0.9em;
         }
         
-        .result-item a:hover {
-            text-decoration: underline;
-        }
-        
-        /* Status */
         .status {
             padding: 16px 24px;
             border-radius: 10px;
@@ -479,7 +446,6 @@ HTML_TEMPLATE = '''
             color: var(--error);
         }
         
-        /* Table */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -487,7 +453,7 @@ HTML_TEMPLATE = '''
         }
         
         th, td {
-            padding: 14px;
+            padding: 12px;
             text-align: left;
             border-bottom: 1px solid var(--border);
         }
@@ -495,18 +461,16 @@ HTML_TEMPLATE = '''
         th {
             color: var(--accent);
             font-weight: 600;
-            font-size: 0.9em;
+            font-size: 0.85em;
             text-transform: uppercase;
-            letter-spacing: 1px;
         }
         
         td {
             color: var(--text-secondary);
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.9em;
+            font-size: 0.85em;
         }
         
-        /* Footer */
         footer {
             text-align: center;
             padding: 30px;
@@ -521,28 +485,35 @@ HTML_TEMPLATE = '''
             text-decoration: none;
         }
         
-        /* Responsive */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .feature-item {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid var(--accent);
+        }
+        
+        .feature-item strong {
+            color: var(--accent);
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .feature-item span {
+            color: var(--text-secondary);
+            font-size: 0.85em;
+        }
+        
         @media (max-width: 768px) {
             .logo { font-size: 2.5em; }
             nav { gap: 4px; }
-            nav a { padding: 10px 16px; font-size: 0.8em; }
-            .card { padding: 20px; }
-        }
-        
-        /* Loading Animation */
-        .loader {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--accent);
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 1s linear infinite;
-            margin-right: 10px;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+            nav a { padding: 8px 12px; font-size: 0.75em; }
         }
     </style>
 </head>
@@ -553,7 +524,7 @@ HTML_TEMPLATE = '''
     <div class="container">
         <header>
             <div class="logo">GHOSTRACE</div>
-            <div class="tagline">Advanced OSINT Scanner</div>
+            <div class="tagline">Advanced OSINT Scanner v1.2</div>
         </header>
         
         <nav>
@@ -563,13 +534,17 @@ HTML_TEMPLATE = '''
             <a href="/whois" class="{{ 'active' if page == 'whois' else '' }}">WHOIS</a>
             <a href="/subdomains" class="{{ 'active' if page == 'subdomains' else '' }}">Subdomains</a>
             <a href="/ssl" class="{{ 'active' if page == 'ssl' else '' }}">SSL</a>
+            <a href="/ipgeo" class="{{ 'active' if page == 'ipgeo' else '' }}">IP Geo</a>
+            <a href="/ports" class="{{ 'active' if page == 'ports' else '' }}">Ports</a>
+            <a href="/tech" class="{{ 'active' if page == 'tech' else '' }}">Tech</a>
+            <a href="/content" class="{{ 'active' if page == 'content' else '' }}">Content</a>
             <a href="/history" class="{{ 'active' if page == 'history' else '' }}">History</a>
         </nav>
         
         {% block content %}{% endblock %}
         
         <footer>
-            <p><strong>GHOSTRACE</strong> v1.0 | Developed by Chriz</p>
+            <p><strong>GHOSTRACE</strong> v1.2 | Developed by Chriz</p>
             <p><a href="https://github.com/chriz-3656" target="_blank">GitHub</a> | Email: chrizmonsaji@proton.me | License: MIT</p>
         </footer>
     </div>
@@ -577,41 +552,70 @@ HTML_TEMPLATE = '''
 </html>
 '''
 
+# ============= PAGE TEMPLATES =============
+
 HOME_TEMPLATE = HTML_TEMPLATE.replace('{% block content %}{% endblock %}', '''
 <div class="stats">
     <div class="stat-box">
         <div class="number">{{ sites_count }}</div>
-        <div class="label">Sites Configured</div>
+        <div class="label">Sites</div>
     </div>
     <div class="stat-box">
         <div class="number">{{ history_count }}</div>
-        <div class="label">Total Scans</div>
+        <div class="label">Scans</div>
     </div>
     <div class="stat-box">
         <div class="number">{{ total_found }}</div>
-        <div class="label">Accounts Found</div>
+        <div class="label">Found</div>
     </div>
 </div>
 
-<div class="card" style="animation-delay: 0.1s;">
-    <h2>Welcome to GHOSTRACE</h2>
-    <p>Advanced OSINT tool for discovering username footprints across 180+ online platforms.</p>
+<div class="card">
+    <h2>Welcome to GHOSTRACE v1.2</h2>
+    <p>Advanced OSINT tool with 22+ scanning capabilities</p>
     
-    <h3 style="color: var(--accent); margin: 20px 0 10px;">Features:</h3>
-    <ul style="color: var(--text-secondary); margin-left: 20px; line-height: 2;">
-        <li>Scan username across 181+ platforms</li>
-        <li>Check email breaches with HaveIBeenPwned</li>
-        <li>WHOIS domain lookups</li>
-        <li>Subdomain enumeration</li>
-        <li>SSL certificate analysis</li>
-    </ul>
+    <div class="feature-grid">
+        <div class="feature-item">
+            <strong>Username Scan</strong>
+            <span>Find across 181+ platforms</span>
+        </div>
+        <div class="feature-item">
+            <strong>Email Breaches</strong>
+            <span>HaveIBeenPwned lookup</span>
+        </div>
+        <div class="feature-item">
+            <strong>WHOIS Lookup</strong>
+            <span>Domain registration info</span>
+        </div>
+        <div class="feature-item">
+            <strong>Subdomains</strong>
+            <span>Enumerate subdomains</span>
+        </div>
+        <div class="feature-item">
+            <strong>IP Geolocation</strong>
+            <span>City, Country, ISP</span>
+        </div>
+        <div class="feature-item">
+            <strong>Port Scanner</strong>
+            <span>Scan common ports</span>
+        </div>
+        <div class="feature-item">
+            <strong>Technology Detect</strong>
+            <span>CMS, frameworks</span>
+        </div>
+        <div class="feature-item">
+            <strong>Content Discovery</strong>
+            <span>Extract emails, files</span>
+        </div>
+    </div>
 </div>
 
-<div class="card" style="animation-delay: 0.2s;">
-    <h2>Quick Actions</h2>
+<div class="card">
+    <h2>Quick Start</h2>
     <nav style="justify-content: flex-start; margin-bottom: 0;">
         <a href="/scan" style="background: var(--accent); color: var(--bg-primary);">Start Scan</a>
         <a href="/email">Check Breaches</a>
+        <a href="/ipgeo">IP Lookup</a>
     </nav>
 </div>
 ''')
@@ -619,7 +623,7 @@ HOME_TEMPLATE = HTML_TEMPLATE.replace('{% block content %}{% endblock %}', '''
 SCAN_TEMPLATE = HTML_TEMPLATE.replace('{% block content %}{% endblock %}', '''
 <div class="card">
     <h2>Username Scanner</h2>
-    <p>Scan for username across 180+ platforms</p>
+    <p>Scan for username across 181+ platforms</p>
     <form method="POST" action="/scan">
         <div class="form-group">
             <label>Enter Username</label>
@@ -631,9 +635,8 @@ SCAN_TEMPLATE = HTML_TEMPLATE.replace('{% block content %}{% endblock %}', '''
 
 {% if results %}
 <div class="card">
-    <h2>Results for: {{ username }}</h2>
+    <h2>Results: {{ username }}</h2>
     <p>Found on <strong style="color: var(--accent);">{{ found_count }}</strong> sites</p>
-    
     {% for result in results %}
     <div class="result-item">
         <strong>{{ result.site }}</strong><br>
@@ -647,15 +650,11 @@ SCAN_TEMPLATE = HTML_TEMPLATE.replace('{% block content %}{% endblock %}', '''
 EMAIL_TEMPLATE = HTML_TEMPLATE.replace('{% block content %}{% endblock %}', '''
 <div class="card">
     <h2>Email Breach Check</h2>
-    <p>Check if email has been compromised in data breaches</p>
+    <p>Check if email has been compromised</p>
     <form method="POST" action="/email">
         <div class="form-group">
             <label>Email Address</label>
             <input type="email" name="email" placeholder="user@example.com" required>
-        </div>
-        <div class="form-group">
-            <label>HaveIBeenPwned API Key (optional)</label>
-            <input type="text" name="api_key" placeholder="Enter API key for detailed results">
         </div>
         <button type="submit">Check Breaches</button>
     </form>
@@ -690,10 +689,7 @@ WHOIS_TEMPLATE = HTML_TEMPLATE.replace('{% block content %}{% endblock %}', '''
         <h3>WHOIS Results</h3>
         <table>
             {% for key, value in result.items() %}
-            <tr>
-                <th>{{ key }}</th>
-                <td>{{ value }}</td>
-            </tr>
+            <tr><th>{{ key }}</th><td>{{ value }}</td></tr>
             {% endfor %}
         </table>
     </div>
@@ -729,7 +725,7 @@ SUBDOMAIN_TEMPLATE = HTML_TEMPLATE.replace('{% block content %}{% endblock %}', 
 SSL_TEMPLATE = HTML_TEMPLATE.replace('{% block content %}{% endblock %}', '''
 <div class="card">
     <h2>SSL Certificate Check</h2>
-    <p>Get SSL certificate information for a domain</p>
+    <p>Get SSL certificate information</p>
     <form method="POST" action="/ssl">
         <div class="form-group">
             <label>Hostname</label>
@@ -743,12 +739,106 @@ SSL_TEMPLATE = HTML_TEMPLATE.replace('{% block content %}{% endblock %}', '''
         <h3>SSL Certificate Info</h3>
         <table>
             {% for key, value in result.items() %}
-            <tr>
-                <th>{{ key }}</th>
-                <td>{{ value }}</td>
-            </tr>
+            <tr><th>{{ key }}</th><td>{{ value }}</td></tr>
             {% endfor %}
         </table>
+    </div>
+    {% endif %}
+</div>
+''')
+
+IPGEO_TEMPLATE = HTML_TEMPLATE.replace('{% block content %}{% endblock %}', '''
+<div class="card">
+    <h2>IP Geolocation</h2>
+    <p>Look up IP address location</p>
+    <form method="POST" action="/ipgeo">
+        <div class="form-group">
+            <label>IP Address</label>
+            <input type="text" name="ip" placeholder="8.8.8.8" required>
+        </div>
+        <button type="submit">Lookup</button>
+    </form>
+    
+    {% if result and result.get('country') %}
+    <div class="card">
+        <h3>Location Info</h3>
+        <table>
+            <tr><th>Country</th><td>{{ result.country }}</td></tr>
+            <tr><th>City</th><td>{{ result.city }}</td></tr>
+            <tr><th>ISP</th><td>{{ result.isp }}</td></tr>
+            <tr><th>Org</th><td>{{ result.org }}</td></tr>
+        </table>
+    </div>
+    {% endif %}
+</div>
+''')
+
+PORTS_TEMPLATE = HTML_TEMPLATE.replace('{% block content %}{% endblock %}', '''
+<div class="card">
+    <h2>Port Scanner</h2>
+    <p>Scan for open ports</p>
+    <form method="POST" action="/ports">
+        <div class="form-group">
+            <label>Host/IP</label>
+            <input type="text" name="host" placeholder="example.com" required>
+        </div>
+        <button type="submit">Scan Ports</button>
+    </form>
+    
+    {% if results %}
+    <div class="card">
+        <h3>Open Ports: {{ results|length }}</h3>
+        {% for r in results %}
+        <div class="result-item">
+            Port {{ r.port }} - {{ r.status }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+''')
+
+TECH_TEMPLATE = HTML_TEMPLATE.replace('{% block content %}{% endblock %}', '''
+<div class="card">
+    <h2>Technology Detection</h2>
+    <p>Detect website technologies (CMS, frameworks)</p>
+    <form method="POST" action="/tech">
+        <div class="form-group">
+            <label>URL</label>
+            <input type="text" name="url" placeholder="https://example.com" required>
+        </div>
+        <button type="submit">Detect</button>
+    </form>
+    
+    {% if result and result.technologies %}
+    <div class="card">
+        <h3>Detected Technologies:</h3>
+        {% for tech in result.technologies %}
+        <span style="background: var(--accent); color: var(--bg-primary); padding: 5px 15px; border-radius: 20px; margin: 5px; display: inline-block;">{{ tech }}</span>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+''')
+
+CONTENT_TEMPLATE = HTML_TEMPLATE.replace('{% block content %}{% endblock %}', '''
+<div class="card">
+    <h2>Content Discovery</h2>
+    <p>Extract emails and files from website</p>
+    <form method="POST" action="/content">
+        <div class="form-group">
+            <label>URL</label>
+            <input type="text" name="url" placeholder="https://example.com" required>
+        </div>
+        <button type="submit">Discover</button>
+    </form>
+    
+    {% if result and result.emails %}
+    <div class="card">
+        <h3>Emails Found:</h3>
+        {% for email in result.emails[:20] %}
+        <div class="result-item">{{ email }}</div>
+        {% endfor %}
     </div>
     {% endif %}
 </div>
@@ -759,23 +849,11 @@ HISTORY_TEMPLATE = HTML_TEMPLATE.replace('{% block content %}{% endblock %}', ''
     <h2>Scan History</h2>
     {% if history %}
     <table>
-        <thead>
-            <tr>
-                <th>Type</th>
-                <th>Query</th>
-                <th>Results</th>
-                <th>Date</th>
-            </tr>
-        </thead>
+        <thead><tr><th>Type</th><th>Query</th><th>Results</th><th>Date</th></tr></thead>
         <tbody>
-            {% for item in history %}
-            <tr>
-                <td>{{ item.type }}</td>
-                <td>{{ item.query }}</td>
-                <td>{{ item.results }}</td>
-                <td>{{ item.date }}</td>
-            </tr>
-            {% endfor %}
+        {% for item in history %}
+        <tr><td>{{ item.type }}</td><td>{{ item.query }}</td><td>{{ item.results }}</td><td>{{ item.date }}</td></tr>
+        {% endfor %}
         </tbody>
     </table>
     {% else %}
@@ -785,125 +863,134 @@ HISTORY_TEMPLATE = HTML_TEMPLATE.replace('{% block content %}{% endblock %}', ''
 ''')
 
 
+# ============= ROUTES =============
+
 @app.route('/')
 def home():
-    sites_count = len(load_sites())
-    history_count = len(scan_history)
-    total_found = sum(item.get('results', 0) for item in scan_history if item.get('type') == 'username')
-    return render_template_string(HOME_TEMPLATE, 
-                                page='home', 
-                                sites_count=sites_count,
-                                history_count=history_count,
-                                total_found=total_found)
-
+    sites = len(load_sites())
+    return render_template_string(HOME_TEMPLATE, page='home', 
+                                sites_count=sites,
+                                history_count=len(scan_history),
+                                total_found=sum(item.get('results', 0) for item in scan_history if item.get('type') == 'username'))
 
 @app.route('/scan', methods=['GET', 'POST'])
 def scan():
-    sites_count = len(load_sites())
     if request.method == 'POST':
         username = request.form.get('username')
         if username:
-            scanner = WebFootprintScanner()
+            scanner = FootprintScanner()
             results = scanner.run(username)
-            found_count = len(results)
-            
-            scan_history.insert(0, {
-                'type': 'username',
-                'query': username,
-                'results': found_count,
-                'date': datetime.now().strftime('%Y-%m-%d %H:%M')
-            })
-            
-            return render_template_string(SCAN_TEMPLATE, 
-                                       page='scan',
-                                       username=username,
-                                       results=results,
-                                       found_count=found_count,
-                                       sites_count=sites_count)
-    
-    return render_template_string(SCAN_TEMPLATE, page='scan', sites_count=sites_count)
-
+            scan_history.insert(0, {'type': 'username', 'query': username, 'results': len(results), 'date': datetime.now().strftime('%Y-%m-%d %H:%M')})
+            return render_template_string(SCAN_TEMPLATE, page='scan', username=username, results=results, found_count=len(results))
+    return render_template_string(SCAN_TEMPLATE, page='scan')
 
 @app.route('/email', methods=['GET', 'POST'])
 def email():
     if request.method == 'POST':
         email = request.form.get('email')
-        api_key = request.form.get('api_key')
         if email:
-            finder = WebEmailFinder()
-            result = finder.check_breach(email, api_key)
-            
-            scan_history.insert(0, {
-                'type': 'email_breach',
-                'query': email,
-                'results': result,
-                'date': datetime.now().strftime('%Y-%m-%d %H:%M')
-            })
-            
+            import hashlib
+            sha1 = hashlib.sha1(email.encode()).hexdigest().upper()
+            prefix, suffix = sha1[:5], sha1[5:]
+            result = 0
+            async def check():
+                nonlocal result
+                try:
+                    async with aiohttp.ClientSession() as session:
+                        async with session.get(f"https://api.pwnedpasswords.com/range/{prefix}") as resp:
+                            if resp.status == 200:
+                                data = await resp.text()
+                                for line in data.split('\n'):
+                                    h, count = line.split(':')
+                                    if h == suffix:
+                                        result = int(count)
+                except:
+                    pass
+            asyncio.run(check())
+            scan_history.insert(0, {'type': 'email', 'query': email, 'results': result, 'date': datetime.now().strftime('%Y-%m-%d %H:%M')})
             return render_template_string(EMAIL_TEMPLATE, page='email', result=result)
-    
     return render_template_string(EMAIL_TEMPLATE, page='email')
-
 
 @app.route('/whois', methods=['GET', 'POST'])
 def whois():
     if request.method == 'POST':
         domain = request.form.get('domain')
         if domain:
-            lookup = WebWHOISLookup()
-            result = lookup.lookup(domain)
-            
-            scan_history.insert(0, {
-                'type': 'whois',
-                'query': domain,
-                'results': 'N/A',
-                'date': datetime.now().strftime('%Y-%m-%d %H:%M')
-            })
-            
-            return render_template_string(WHOIS_TEMPLATE, page='whois', result=result, domain=domain)
-    
+            try:
+                import whois
+                w = whois.whois(domain)
+                result = {'Domain': domain, 'Registrar': str(w.registrar), 'Created': str(w.creation_date), 'Expires': str(w.expiration_date)}
+            except Exception as e:
+                result = {'Error': str(e)}
+            scan_history.insert(0, {'type': 'whois', 'query': domain, 'results': 'N/A', 'date': datetime.now().strftime('%Y-%m-%d %H:%M')})
+            return render_template_string(WHOIS_TEMPLATE, page='whois', result=result)
     return render_template_string(WHOIS_TEMPLATE, page='whois')
-
 
 @app.route('/subdomains', methods=['GET', 'POST'])
 def subdomains():
     if request.method == 'POST':
         domain = request.form.get('domain')
         if domain:
-            enum = WebSubdomainEnum()
+            enum = SubdomainEnum()
             results = enum.enumerate(domain)
-            
-            scan_history.insert(0, {
-                'type': 'subdomains',
-                'query': domain,
-                'results': len(results),
-                'date': datetime.now().strftime('%Y-%m-%d %H:%M')
-            })
-            
+            scan_history.insert(0, {'type': 'subdomains', 'query': domain, 'results': len(results), 'date': datetime.now().strftime('%Y-%m-%d %H:%M')})
             return render_template_string(SUBDOMAIN_TEMPLATE, page='subdomains', results=results)
-    
     return render_template_string(SUBDOMAIN_TEMPLATE, page='subdomains')
 
-
 @app.route('/ssl', methods=['GET', 'POST'])
-def ssl_check():
+def ssl():
     if request.method == 'POST':
         hostname = request.form.get('hostname')
         if hostname:
-            checker = WebSSLCert()
+            checker = SSLCert()
             result = checker.check(hostname)
-            
-            scan_history.insert(0, {
-                'type': 'ssl',
-                'query': hostname,
-                'results': 'N/A',
-                'date': datetime.now().strftime('%Y-%m-%d %H:%M')
-            })
-            
+            scan_history.insert(0, {'type': 'ssl', 'query': hostname, 'results': 'N/A', 'date': datetime.now().strftime('%Y-%m-%d %H:%M')})
             return render_template_string(SSL_TEMPLATE, page='ssl', result=result)
-    
     return render_template_string(SSL_TEMPLATE, page='ssl')
 
+@app.route('/ipgeo', methods=['GET', 'POST'])
+def ipgeo():
+    if request.method == 'POST':
+        ip = request.form.get('ip')
+        if ip:
+            lookup = IPGeoLookup()
+            result = lookup.lookup(ip)
+            scan_history.insert(0, {'type': 'ipgeo', 'query': ip, 'results': 'N/A', 'date': datetime.now().strftime('%Y-%m-%d %H:%M')})
+            return render_template_string(IPGEO_TEMPLATE, page='ipgeo', result=result)
+    return render_template_string(IPGEO_TEMPLATE, page='ipgeo')
+
+@app.route('/ports', methods=['GET', 'POST'])
+def ports():
+    if request.method == 'POST':
+        host = request.form.get('host')
+        if host:
+            scanner = PortScanner()
+            results = scanner.scan(host)
+            scan_history.insert(0, {'type': 'ports', 'query': host, 'results': len(results), 'date': datetime.now().strftime('%Y-%m-%d %H:%M')})
+            return render_template_string(PORTS_TEMPLATE, page='ports', results=results)
+    return render_template_string(PORTS_TEMPLATE, page='ports')
+
+@app.route('/tech', methods=['GET', 'POST'])
+def tech():
+    if request.method == 'POST':
+        url = request.form.get('url')
+        if url:
+            detector = TechnologyDetect()
+            result = detector.detect(url)
+            scan_history.insert(0, {'type': 'tech', 'query': url, 'results': len(result.get('technologies', [])), 'date': datetime.now().strftime('%Y-%m-%d %H:%M')})
+            return render_template_string(TECH_TEMPLATE, page='tech', result=result)
+    return render_template_string(TECH_TEMPLATE, page='tech')
+
+@app.route('/content', methods=['GET', 'POST'])
+def content():
+    if request.method == 'POST':
+        url = request.form.get('url')
+        if url:
+            disc = ContentDiscovery()
+            result = disc.discover(url)
+            scan_history.insert(0, {'type': 'content', 'query': url, 'results': len(result.get('emails', [])), 'date': datetime.now().strftime('%Y-%m-%d %H:%M')})
+            return render_template_string(CONTENT_TEMPLATE, page='content', result=result)
+    return render_template_string(CONTENT_TEMPLATE, page='content')
 
 @app.route('/history')
 def history():
@@ -911,15 +998,12 @@ def history():
 
 
 def run_web():
-    """Run the web server"""
     print(Fore.CYAN + "="*60 + Style.RESET_ALL)
-    print(Fore.GREEN + "  GHOSTRACE Web Interface" + Style.RESET_ALL)
+    print(Fore.GREEN + "  GHOSTRACE Web Interface v1.2" + Style.RESET_ALL)
     print(Fore.CYAN + "="*60 + Style.RESET_ALL)
     print(Fore.YELLOW + "\n  Starting server..." + Style.RESET_ALL)
     print(Fore.CYAN + "\n  Access at:" + Style.RESET_ALL)
-    print(Fore.GREEN + "    http://localhost:5000" + Style.RESET_ALL)
-    print(Fore.YELLOW + "\n  Press CTRL+C to stop" + Style.RESET_ALL)
-    print(Fore.CYAN + "="*60 + Style.RESET_ALL + "\n")
+    print(Fore.GREEN + "    http://localhost:5000" + Style.RESET_ALL + "\n")
     app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
 
 
